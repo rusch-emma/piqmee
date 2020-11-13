@@ -42,6 +42,10 @@ public class QuasiSpeciesTree extends Tree {
     protected Map<String,Integer> haplotypeCounts;
     protected String qsLabel = "qscounts";
 
+    // incidence data
+    protected List<Double> incidenceTimesList;
+    protected List<Integer> incidenceCountList;
+
     // for quick access to external nodes
     Node[] externalNodeArray = null;
     // hash table with unique sequences and the corresponding tip names -- for likelihood to be able to subset the data
@@ -540,6 +544,9 @@ public class QuasiSpeciesTree extends Tree {
         m_storedNodes = new QuasiSpeciesNode[nodeCount];
         Node copy = root.copy();
         listNodes((QuasiSpeciesNode)copy, (QuasiSpeciesNode[])m_storedNodes);
+
+        incidenceTimesList = new ArrayList<>();
+        incidenceCountList = new ArrayList<>();
     }
 
     /**
@@ -1726,6 +1733,26 @@ public class QuasiSpeciesTree extends Tree {
         node.setID(String.valueOf(nextNr));
 
         return nextNr+1;
+    }
+
+    /**
+     * Filter out incidence data by their sequences (only N's) and store their
+     * times and counts in the tree.
+     * @param data
+     */
+    protected void storeIncidenceData(Alignment data) {
+        TraitSet taxonTimes = m_traitList.get().get(0); // are times always at index 0?
+        for (Sequence sequence : data.sequenceInput.get()) {
+            // match sequences consisting of only N's (i.e. incidence sequences)
+            Pattern p = Pattern.compile("^(N)\\1*$");
+            if (p.matcher(sequence.getData()).matches()) {
+                String taxon = sequence.getTaxon();
+                incidenceTimesList.add(taxonTimes.convertValueToDouble(taxonTimes.getStringValue(taxon)));
+                incidenceCountList.add(haplotypeCounts.get(taxon));
+            }
+        }
+
+        return;
     }
 
     /**

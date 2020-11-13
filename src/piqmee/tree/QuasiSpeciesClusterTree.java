@@ -37,6 +37,9 @@ public class QuasiSpeciesClusterTree extends QuasiSpeciesTree implements StateNo
         // initialize the tree
         // get the input alignment
         Alignment data = dataInput.get();
+
+        storeIncidenceData(data);
+
         if (data instanceof FilteredAlignment) {
             data = ((FilteredAlignment) data).alignmentInput.get();
         }
