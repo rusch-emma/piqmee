@@ -1530,6 +1530,8 @@ public class QuasiSpeciesTree extends Tree {
                     else
                         returnNode.getTipTimesCountList()[0] = 1;
                 }
+            } else {
+                haplotypesAtThisNode = null;
             }
         }
         else {
@@ -1555,10 +1557,12 @@ public class QuasiSpeciesTree extends Tree {
             // Case 4:  this is a real QS tree node where several haplotypes meet -- check if any of haplo has been seen already
             //            if it has, assign the internal node to the existing branch of that haplo
             ArrayList sameHaploLeftRight = new ArrayList();
-            for (int i = 0; i < leftHaplo.size(); i++){
-                for (int j = 0; j < rightHaplo.size(); j++){
-                    if ((int) leftHaplo.get(i) == (int) rightHaplo.get(j)) {
-                        sameHaploLeftRight.add(leftHaplo.get(i));
+            if (leftHaplo != null && rightHaplo != null) {
+                for (int i = 0; i < leftHaplo.size(); i++){
+                    for (int j = 0; j < rightHaplo.size(); j++){
+                        if ((int) leftHaplo.get(i) == (int) rightHaplo.get(j)) {
+                            sameHaploLeftRight.add(leftHaplo.get(i));
+                        }
                     }
                 }
             }
@@ -1625,7 +1629,7 @@ public class QuasiSpeciesTree extends Tree {
                         " different tree. Alternatively, input sequences only.");
             }
             //case 4
-            else {
+            else if (leftHaplo != null && rightHaplo != null) {
                 haplotypesAtThisNode = leftHaplo;
                 haplotypesAtThisNode.addAll(haplotypesAtThisNode.size(),rightHaplo);
                 // look for fake haplotype (i.e. one of the nodes below this node are not qsTips
