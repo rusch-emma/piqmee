@@ -1629,9 +1629,11 @@ public class QuasiSpeciesTree extends Tree {
                         " different tree. Alternatively, input sequences only.");
             }
             //case 4
-            else if (leftHaplo != null && rightHaplo != null) {
-                haplotypesAtThisNode = leftHaplo;
-                haplotypesAtThisNode.addAll(haplotypesAtThisNode.size(),rightHaplo);
+            else {
+                if (leftHaplo != null)
+                    haplotypesAtThisNode.addAll(0, leftHaplo);
+                if (rightHaplo != null)
+                    haplotypesAtThisNode.addAll(haplotypesAtThisNode.size(),rightHaplo);
                 // look for fake haplotype (i.e. one of the nodes below this node are not qsTips
                 QuasiSpeciesNode nodeToPlace = null;
                 // if we have a fake node, connect the left-right haplotypes at a new node corresponding to fake haplo
@@ -1675,11 +1677,13 @@ public class QuasiSpeciesTree extends Tree {
                     //      then several haplotypes could meet at one node suddenly
                 }
                 // otherwise connect the two sides at the current branches
-                else{
+                else if (leftHaplo != null || rightHaplo != null) {
                     returnNode = new QuasiSpeciesNode();
                     qsInternalNodes.add(returnNode);
-                    returnNode.addChild(leftNode);
-                    returnNode.addChild(rightNode);
+                    if (leftNode != null)
+                        returnNode.addChild(leftNode);
+                    if (rightNode != null)
+                        returnNode.addChild(rightNode);
                     returnNode.setHeight(node.getHeight());
                 }
             }
