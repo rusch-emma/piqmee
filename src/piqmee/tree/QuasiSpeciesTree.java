@@ -1531,6 +1531,7 @@ public class QuasiSpeciesTree extends Tree {
                         returnNode.getTipTimesCountList()[0] = 1;
                 }
             } else {
+                // mark incidence nodes as 'null' haplotype
                 haplotypesAtThisNode = null;
             }
         }
@@ -1554,7 +1555,10 @@ public class QuasiSpeciesTree extends Tree {
             // Case 2:  both arrays have exactly one same QS this means we found a duplicate and need to record this time
             //            into attachmentTimesList
             // Case 3:  this is a fake internal node where several fake haplo meet -- this option is not implemented yet - throw error
-            // Case 4:  this is a real QS tree node where several haplotypes meet -- check if any of haplo has been seen already
+            // Case 4:  there exists at least one incidence node (i.e. haplotype == null):
+            //          if there exists exactly one incidence node, connect the other branch with the real haplotype to the next internal node
+            //          if there exist two incidence nodes, delete the internal node connecting them and set its haplotype = null as well
+            // Case 5:  this is a real QS tree node where several haplotypes meet -- check if any of haplo has been seen already
             //            if it has, assign the internal node to the existing branch of that haplo
             ArrayList sameHaploLeftRight = new ArrayList();
             if (leftHaplo != null && rightHaplo != null) {
@@ -1629,11 +1633,21 @@ public class QuasiSpeciesTree extends Tree {
                         " different tree. Alternatively, input sequences only.");
             }
             //case 4
+            else if (leftHaplo == null || rightHaplo == null) {
+                if (leftHaplo != null) {
+                    returnNode = leftNode;
+                    haplotypesAtThisNode = leftHaplo;
+                } else if (rightHaplo != null) {
+                    returnNode = rightNode;
+                    haplotypesAtThisNode = rightHaplo;
+                } else {
+                    haplotypesAtThisNode = null;
+                }
+            }
+            //case 5
             else {
-                if (leftHaplo != null)
-                    haplotypesAtThisNode.addAll(0, leftHaplo);
-                if (rightHaplo != null)
-                    haplotypesAtThisNode.addAll(haplotypesAtThisNode.size(),rightHaplo);
+                haplotypesAtThisNode=leftHaplo;
+                haplotypesAtThisNode.addAll(haplotypesAtThisNode.size(),rightHaplo);
                 // look for fake haplotype (i.e. one of the nodes below this node are not qsTips
                 QuasiSpeciesNode nodeToPlace = null;
                 // if we have a fake node, connect the left-right haplotypes at a new node corresponding to fake haplo
@@ -1677,13 +1691,11 @@ public class QuasiSpeciesTree extends Tree {
                     //      then several haplotypes could meet at one node suddenly
                 }
                 // otherwise connect the two sides at the current branches
-                else if (leftHaplo != null || rightHaplo != null) {
+                else {
                     returnNode = new QuasiSpeciesNode();
                     qsInternalNodes.add(returnNode);
-                    if (leftNode != null)
-                        returnNode.addChild(leftNode);
-                    if (rightNode != null)
-                        returnNode.addChild(rightNode);
+                    returnNode.addChild(leftNode);
+                    returnNode.addChild(rightNode);
                     returnNode.setHeight(node.getHeight());
                 }
             }
