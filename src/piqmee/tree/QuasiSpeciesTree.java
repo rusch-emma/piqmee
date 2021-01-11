@@ -1637,9 +1637,11 @@ public class QuasiSpeciesTree extends Tree {
                 if (leftHaplo != null) {
                     returnNode = leftNode;
                     haplotypesAtThisNode = leftHaplo;
+                    fakeHaplo = leftFakeHaplo;
                 } else if (rightHaplo != null) {
                     returnNode = rightNode;
                     haplotypesAtThisNode = rightHaplo;
+                    fakeHaplo = rightFakeHaplo;
                 } else {
                     haplotypesAtThisNode = null;
                 }
