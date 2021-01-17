@@ -42,7 +42,7 @@ public class QuasiSpeciesTree extends Tree {
     protected Map<String,Integer> haplotypeCounts;
     protected String qsLabel = "qscounts";
 
-    protected Map<Double, Integer> incidenceData;
+    protected HashMap<String, QuasiSpeciesIncidence> incidences;
 
     // for quick access to external nodes
     Node[] externalNodeArray = null;
@@ -543,7 +543,7 @@ public class QuasiSpeciesTree extends Tree {
         Node copy = root.copy();
         listNodes((QuasiSpeciesNode)copy, (QuasiSpeciesNode[])m_storedNodes);
 
-        incidenceData = new HashMap<>();
+        incidences = new HashMap<>();
     }
 
     /**
@@ -1005,12 +1005,11 @@ public class QuasiSpeciesTree extends Tree {
         // set haplo count to those found in input for uniqueHaploTree
         setHaploCounts(haplotypeCountsTrait,uniqueHaploTree);
 
-        Set<String> incidenceTaxa = storeIncidenceData(data);
+        storeIncidenceData(data);
 
         ArrayList result = processNextNodeOfFullNewickTree(
                 uniqueHaploTree.getRoot(), qsTips, qsInternalNodes,
-                distanceMatrix, haplotypesSeen, incidenceTaxa,
-                collapseIdentical);
+                distanceMatrix, haplotypesSeen, collapseIdentical);
 
         // renumber tips to match the number of tips in the qsTree (so far matching fullTree node numbers)
         // need to match the tip times and attach time and haplo count lists!! -- this should not affect the order
@@ -1099,11 +1098,11 @@ public class QuasiSpeciesTree extends Tree {
         List<QuasiSpeciesNode> qsTips = new ArrayList<>();
         List<QuasiSpeciesNode> qsInternalNodes = new ArrayList<>();
 
-        Set<String> incidenceTaxa = storeIncidenceData(data);
+        storeIncidenceData(data);
 
         ArrayList result = processNextNodeOfFullNewickTree(
                 fullTree.getRoot(), qsTips, qsInternalNodes,
-                distanceMatrix, haplotypesSeen, incidenceTaxa,
+                distanceMatrix, haplotypesSeen,
                 collapseIdentical);
 
         // renumber tips to match the number of tips in the qsTree (so far matching fullTree node numbers)
@@ -1424,8 +1423,7 @@ public class QuasiSpeciesTree extends Tree {
      */
     private ArrayList processNextNodeOfFullNewickTree(
             Node node, List<QuasiSpeciesNode> qsTips, List<QuasiSpeciesNode> qsInternalNodes,
-            double[][] distanceMatrix, ArrayList haplotypesSeen, Set<String> incidenceTaxa,
-            boolean collapseIdentical) {
+            double[][] distanceMatrix, ArrayList haplotypesSeen, boolean collapseIdentical) {
 
         QuasiSpeciesNode returnNode = null;
         ArrayList haplotypesAtThisNode = new ArrayList();
@@ -1434,7 +1432,7 @@ public class QuasiSpeciesTree extends Tree {
         //      to the branch leading to the true tip
         int fakeHaplo = -1;
         // check if this node is from an incidence sequence and if so skip processing of this node
-        boolean isIncidence = incidenceTaxa.contains(node.getID());
+        boolean isIncidence = incidences.containsKey(node.getID());
         // for leaf nodes check if the sequence has been seen at another node already
         // pass on to the parent the info on which haplo is at the tip
         if (node.isLeaf() || isIncidence) {
@@ -1538,12 +1536,10 @@ public class QuasiSpeciesTree extends Tree {
         else {
             ArrayList leftOut = processNextNodeOfFullNewickTree(
                     node.getLeft(), qsTips, qsInternalNodes,
-                    distanceMatrix, haplotypesSeen, incidenceTaxa,
-                    collapseIdentical);
+                    distanceMatrix, haplotypesSeen, collapseIdentical);
             ArrayList rightOut = processNextNodeOfFullNewickTree(
                     node.getRight(), qsTips, qsInternalNodes,
-                    distanceMatrix, haplotypesSeen, incidenceTaxa,
-                    collapseIdentical);
+                    distanceMatrix, haplotypesSeen, collapseIdentical);
 
             QuasiSpeciesNode leftNode = (QuasiSpeciesNode) leftOut.get(0);
             QuasiSpeciesNode rightNode = (QuasiSpeciesNode) rightOut.get(0);
@@ -1778,16 +1774,13 @@ public class QuasiSpeciesTree extends Tree {
      * @param data
      * @return A set of all taxa of incidence data.
      */
-    protected Set<String> storeIncidenceData(Alignment data) {
-        Set<String> incidenceTaxa = new HashSet<>();
-
+    protected void storeIncidenceData(Alignment data) {
         TraitSet taxonTimes = m_traitList.get().get(0); // are times always at index 0?
         for (Sequence sequence : data.sequenceInput.get()) {
             // match sequences consisting of only N's (i.e. incidence sequences)
             Pattern p = Pattern.compile("^(N)\\1*$");
             if (p.matcher(sequence.getData()).matches()) {
                 String taxon = sequence.getTaxon();
-                incidenceTaxa.add(taxon);
 
                 double time = taxonTimes.convertValueToDouble(taxonTimes.getStringValue(taxon));
                 int count = haplotypeCounts.get(taxon);
@@ -1799,22 +1792,33 @@ public class QuasiSpeciesTree extends Tree {
                             for (int j = 0; j < tipTimesListTmp.length; j++) {
                                 // if yes, just increase the corresponding timecount array by one
                                 if ( Math.abs(tipTimesListTmp[j] - node.getHeight()) < 1e-10) {
-                                    tipTimesCountListTmp[j] += 1;
+                 tipTimesCountListTmp[j] += 1;
                                     haploSeen = true;
                                     break;
                                 }
                             }
                  */
-                // sum up counts of sequences with equal times
-                if (!incidenceData.containsKey(time)) {
-                    incidenceData.put(time, count);
+                if (!incidences.containsKey(taxon)) {
+                    incidences.put(taxon, new QuasiSpeciesIncidence(time, count));
                 } else {
-                    incidenceData.put(time, incidenceData.get(time) + count);
+                    // sum up counts of sequences with equal times
+                    QuasiSpeciesIncidence incidence = incidences.get(taxon);
+                    incidence.addCount(count);
                 }
             }
         }
 
-        return incidenceTaxa;
+        for (QuasiSpeciesIncidence incidence : incidences.values()) {
+            incidence.generateAttachmentTimes();
+        }
+    }
+
+    /**
+     * TODO
+     * @return
+     */
+    public HashMap<String, QuasiSpeciesIncidence> getIncidences() {
+        return incidences;
     }
 
     /**
