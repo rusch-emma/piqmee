@@ -590,6 +590,18 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
         return count;
     }
 
+    private int incidenceLineageCountAtTime(Collection<QuasiSpeciesIncidence> incidences, double time) {
+        int count = 0;
+        for (QuasiSpeciesIncidence incidence : incidences) {
+            for (double attachmentTime : incidence.getAttachmentTimes()) {
+                if (attachmentTime > time)
+                    count++;
+            }
+        }
+
+        return count;
+    }
+
     // calculateTreeLogLikelihood also adapted from Denise's code
     @Override
     public double calculateTreeLogLikelihood(TreeInterface tree) {
@@ -641,6 +653,22 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
         if (Double.isInfinite(logP))
             return logP;
 
+        HashMap<String, QuasiSpeciesIncidence> incidenceMap = ((QuasiSpeciesTree) tree).getIncidences();
+        if (incidenceMap.size() > 0) {
+            Collection<QuasiSpeciesIncidence> incidences = incidenceMap.values();
+
+            /*processFirstProductTermIncidences(incidences);
+            if (Double.isInfinite(logP))
+                return logP;*/
+
+            /*processMiddleProductTermIncidences(incidences);
+            if (Double.isInfinite(logP))
+                return logP;*/
+
+            processLastTermIncidences(tree, incidences);
+            if (Double.isInfinite(logP))
+                return logP;
+        }
 
         // factor for all possible QS trees
         logP += logNumberOfQSTrees(tree);
@@ -917,9 +945,30 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
         }	
     }
 
+    private void processLastTermIncidences(final TreeInterface tree, Collection<QuasiSpeciesIncidence> incidences) {
+	    double time;
+	    for (int j = 0; j < totalIntervals; j++) {
+	        time = j < 1 ? 0 : times[j - 1];
+	        int incidenceLineages = incidenceLineageCountAtTime(incidences, times[totalIntervals - 1]);
+            final int nj = j == 0 ? 0 :
+                    lineageCountAtTime(times[totalIntervals - 1] - time, tree) + (incidenceLineages * (incidenceLineages - 1)) / 2;
+            if (nj > 0) {
+                double temp = nj * (log_q(j, times[j], time) + FastMathLog(1 - rho[j - 1]));
+                logP += temp;
+                if (printTempResults)
+                    System.out.println("3rd factor (nj loop) = " + temp + "; interval = " + j + "; n[j] = " + nj);//+ "; Math.log(g(j, times[j], time)) = " + Math.log(g(j, times[j], time)));
+                if (Double.isInfinite(logP))
+                    return;
+            }
 
-	
-	
-
-	
+            if (rho[j] > 0 && N[j] > 0) {
+                double temp = N[j] * FastMathLog(rho[j]);    // term for contemporaneous sampling
+                logP += temp;
+                if (printTempResults)
+                    System.out.println("3rd factor (Nj loop) = " + temp + "; interval = " + j + "; N[j] = " + N[j]);
+                if (Double.isInfinite(logP))
+                    return;
+            }
+        }
+    }
 }
