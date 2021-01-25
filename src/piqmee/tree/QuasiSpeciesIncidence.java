@@ -2,12 +2,12 @@ package piqmee.tree;
 
 import beast.core.Description;
 
-import java.util.Objects;
-
 @Description("An NNN sequence representing an unsequenced incidence case.")
 public class QuasiSpeciesIncidence {
     private final double samplingTime;
     private double[] attachmentTimes;
+    // index of the next empty slot in the attachment times list
+    private int currentAttachmentTimeIndex;
     private boolean attachmentTimesListChanged;
     private int count;
 
@@ -19,7 +19,17 @@ public class QuasiSpeciesIncidence {
     public QuasiSpeciesIncidence(double samplingTime, int count) {
         this.samplingTime = samplingTime;
         this.count = count;
+        this.attachmentTimes = new double[count];
+        this.currentAttachmentTimeIndex = 0;
         attachmentTimesListChanged = false;
+    }
+
+    public QuasiSpeciesIncidence(QuasiSpeciesIncidence quasiSpeciesIncidence) {
+        this.samplingTime = quasiSpeciesIncidence.samplingTime;
+        this.attachmentTimes = quasiSpeciesIncidence.attachmentTimes.clone();
+        this.attachmentTimesListChanged = quasiSpeciesIncidence.attachmentTimesListChanged;
+        this.currentAttachmentTimeIndex = quasiSpeciesIncidence.currentAttachmentTimeIndex;
+        this.count = quasiSpeciesIncidence.count;
     }
 
     public double[] getAttachmentTimes() {
@@ -33,7 +43,14 @@ public class QuasiSpeciesIncidence {
 
     public void setAttachmentTimes(double[] attachmentTimes) {
         this.attachmentTimes = attachmentTimes;
+        this.currentAttachmentTimeIndex = attachmentTimes.length;
         attachmentTimesListChanged = true;
+    }
+
+    public void addAttachmentTime(double attachmentTime) {
+        if (currentAttachmentTimeIndex < attachmentTimes.length - 1) {
+            this.attachmentTimes[currentAttachmentTimeIndex++] = attachmentTime;
+        }
     }
 
     public boolean isAttachmentTimesListChanged() {
@@ -69,15 +86,20 @@ public class QuasiSpeciesIncidence {
     }
 
     /**
-     * Generates attachment times in equal steps
-     * from 0 up to this incidence's sampling time - 1.
+     * Generates all missing attachment times for this incidence in equal step
+     * from a specified lower bound (e.g. root) up to this incidence's sampling time.
      */
-    public void generateAttachmentTimes() {
-        attachmentTimes = new double[count];
-        double step = (samplingTime - 1) / count;
-        attachmentTimes[count - 1] = step;
-        for (int i = count - 2; i >= 0; i--) {
-            attachmentTimes[i] = attachmentTimes[i + 1] + step;
+    public void generateAttachmentTimes(double lowerBound) {
+        double step = (samplingTime - lowerBound) / (count - currentAttachmentTimeIndex);
+
+        if (currentAttachmentTimeIndex == 0) {
+            // if no attachment times exist initialise with the first step
+            attachmentTimes[currentAttachmentTimeIndex++] = step;
+        }
+
+        while (currentAttachmentTimeIndex < count) {
+            attachmentTimes[currentAttachmentTimeIndex] = attachmentTimes[currentAttachmentTimeIndex - 1] + step;
+            currentAttachmentTimeIndex++;
         }
     }
 }
