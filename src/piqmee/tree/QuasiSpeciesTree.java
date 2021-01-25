@@ -8,12 +8,12 @@ import beast.evolution.alignment.FilteredAlignment;
 import beast.evolution.alignment.Sequence;
 import beast.evolution.alignment.distance.Distance;
 import beast.evolution.datatype.DataType;
+import beast.evolution.likelihood.GenericTreeLikelihood;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.TraitSet;
 import beast.evolution.tree.Tree;
 import beast.util.TreeParser;
 import piqmee.distance.DifferenceCount;
-import beast.evolution.likelihood.GenericTreeLikelihood;
 
 import java.io.PrintStream;
 import java.util.*;
@@ -542,8 +542,6 @@ public class QuasiSpeciesTree extends Tree {
         m_storedNodes = new QuasiSpeciesNode[nodeCount];
         Node copy = root.copy();
         listNodes((QuasiSpeciesNode)copy, (QuasiSpeciesNode[])m_storedNodes);
-
-        incidences = new HashMap<>();
     }
 
     /**
@@ -1005,7 +1003,7 @@ public class QuasiSpeciesTree extends Tree {
         // set haplo count to those found in input for uniqueHaploTree
         setHaploCounts(haplotypeCountsTrait,uniqueHaploTree);
 
-        storeIncidenceData(data);
+        storeIncidenceData(data, uniqueHaploTree);
 
         ArrayList result = processNextNodeOfFullNewickTree(
                 uniqueHaploTree.getRoot(), qsTips, qsInternalNodes,
@@ -1098,7 +1096,7 @@ public class QuasiSpeciesTree extends Tree {
         List<QuasiSpeciesNode> qsTips = new ArrayList<>();
         List<QuasiSpeciesNode> qsInternalNodes = new ArrayList<>();
 
-        storeIncidenceData(data);
+        storeIncidenceData(data, fullTree);
 
         ArrayList result = processNextNodeOfFullNewickTree(
                 fullTree.getRoot(), qsTips, qsInternalNodes,
@@ -1769,13 +1767,13 @@ public class QuasiSpeciesTree extends Tree {
 
     /**
      * Filter out incidence data by their sequences (only N's) and store their
-     * times and counts in the tree.
+     * times, count and attachment times in the tree.
      *
      * @param data
      * @return A set of all taxa of incidence data.
      */
-    protected void storeIncidenceData(Alignment data) {
-        TraitSet taxonTimes = m_traitList.get().get(0); // are times always at index 0?
+    protected void storeIncidenceData(Alignment data, Tree tree) {
+        TraitSet taxonTimes = m_traitList.get().get(0);
         for (Sequence sequence : data.sequenceInput.get()) {
             // match sequences consisting of only N's (i.e. incidence sequences)
             Pattern p = Pattern.compile("^(N)\\1*$");
@@ -1785,19 +1783,6 @@ public class QuasiSpeciesTree extends Tree {
                 double time = taxonTimes.convertValueToDouble(taxonTimes.getStringValue(taxon));
                 int count = haplotypeCounts.get(taxon);
 
-                /*  TODO: taken from processNextNodeOfFullNewickTree, might be worth using a threshold for very close times here as well?
-                // since we are assigning from the full tree, we need to check if we have
-                            //  already observed the same time for another already processed tip
-                            boolean haploSeen = false;
-                            for (int j = 0; j < tipTimesListTmp.length; j++) {
-                                // if yes, just increase the corresponding timecount array by one
-                                if ( Math.abs(tipTimesListTmp[j] - node.getHeight()) < 1e-10) {
-                 tipTimesCountListTmp[j] += 1;
-                                    haploSeen = true;
-                                    break;
-                                }
-                            }
-                 */
                 if (!incidences.containsKey(taxon)) {
                     incidences.put(taxon, new QuasiSpeciesIncidence(time, count));
                 } else {
@@ -1808,8 +1793,15 @@ public class QuasiSpeciesTree extends Tree {
             }
         }
 
+        for (Node node : tree.getExternalNodes()) {
+            String taxon = node.getID();
+            if (incidences.containsKey(taxon)) {
+                incidences.get(taxon).addAttachmentTime(node.getParent().getHeight());
+            }
+        }
+
         for (QuasiSpeciesIncidence incidence : incidences.values()) {
-            incidence.generateAttachmentTimes();
+            incidence.generateAttachmentTimes(tree.getRoot().getHeight());
         }
     }
 
