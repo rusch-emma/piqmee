@@ -2,12 +2,12 @@ package piqmee.tree;
 
 import beast.core.Description;
 
+import java.util.ArrayList;
+
 @Description("An NNN sequence representing an unsequenced incidence case.")
 public class QuasiSpeciesIncidence {
     private final double samplingTime;
-    private double[] attachmentTimes;
-    // index of the next empty slot in the attachment times list
-    private int currentAttachmentTimeIndex;
+    private ArrayList<Double> attachmentTimes;
     private boolean attachmentTimesListChanged;
     private int count;
 
@@ -19,8 +19,7 @@ public class QuasiSpeciesIncidence {
     public QuasiSpeciesIncidence(double samplingTime, int count) {
         this.samplingTime = samplingTime;
         this.count = count;
-        this.attachmentTimes = new double[count];
-        this.currentAttachmentTimeIndex = 0;
+        this.attachmentTimes = new ArrayList<>(count);
         attachmentTimesListChanged = false;
     }
 
@@ -32,25 +31,22 @@ public class QuasiSpeciesIncidence {
         this.count = quasiSpeciesIncidence.count;
     }
 
-    public double[] getAttachmentTimes() {
+    public ArrayList<Double> getAttachmentTimes() {
         return attachmentTimes;
     }
 
-    public double[] getAttachmentTimesAndReset() {
+    public ArrayList<Double> getAttachmentTimesAndReset() {
         attachmentTimesListChanged = false;
         return getAttachmentTimes();
     }
 
-    public void setAttachmentTimes(double[] attachmentTimes) {
+    public void setAttachmentTimes(ArrayList<Double> attachmentTimes) {
         this.attachmentTimes = attachmentTimes;
-        this.currentAttachmentTimeIndex = attachmentTimes.length;
         attachmentTimesListChanged = true;
     }
 
     public void addAttachmentTime(double attachmentTime) {
-        if (currentAttachmentTimeIndex < attachmentTimes.length - 1) {
-            this.attachmentTimes[currentAttachmentTimeIndex++] = attachmentTime;
-        }
+        attachmentTimes.add(attachmentTime);
     }
 
     public boolean isAttachmentTimesListChanged() {
@@ -90,16 +86,16 @@ public class QuasiSpeciesIncidence {
      * from a specified lower bound (e.g. root) up to this incidence's sampling time.
      */
     public void generateAttachmentTimes(double lowerBound) {
-        double step = (samplingTime - lowerBound) / (count - currentAttachmentTimeIndex);
+        double step = (samplingTime - lowerBound) / (count - attachmentTimes.size());
 
-        if (currentAttachmentTimeIndex == 0) {
+        if (attachmentTimes.isEmpty()) {
             // if no attachment times exist initialise with the first step
-            attachmentTimes[currentAttachmentTimeIndex++] = step;
+            attachmentTimes.add(step);
         }
 
-        while (currentAttachmentTimeIndex < count) {
-            attachmentTimes[currentAttachmentTimeIndex] = attachmentTimes[currentAttachmentTimeIndex - 1] + step;
-            currentAttachmentTimeIndex++;
+        for (int i = attachmentTimes.size(); i < count; i++) {
+            attachmentTimes.add(attachmentTimes.get(i - 1) + step);
+            //attachmentTimes.set(i, attachmentTimes.get(i - 1) + step);
         }
     }
 }

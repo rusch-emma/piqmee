@@ -30,18 +30,21 @@ public class QuasiSpeciesIncidenceAttachmentUniform extends QuasiSpeciesTreeOper
         QuasiSpeciesIncidence randIncidence = qsTree.getIncidences().get(incidenceTaxons.get(randKey));
 
         // choose random attachment time from incidence
-        double[] attachmentTimes = randIncidence.getAttachmentTimes();
-        int randIdx = Randomizer.nextInt(attachmentTimes.length);
+        ArrayList<Double> attachmentTimes = randIncidence.getAttachmentTimes();
+        int randIdx = Randomizer.nextInt(attachmentTimes.size());
 
         // select interval around random attachment time to change
         int minIdx = randIdx == 0 ? 0 : randIdx - 1;
-        int maxIdx = randIdx == attachmentTimes.length - 1 ? attachmentTimes.length - 1 : randIdx + 1;
+        int maxIdx = randIdx == attachmentTimes.size() - 1 ? attachmentTimes.size() - 1 : randIdx + 1;
 
         // randomly choose new time in selected interval
-        double newTime = ThreadLocalRandom.current().nextDouble(attachmentTimes[minIdx], attachmentTimes[maxIdx]);
-        attachmentTimes[randIdx] = newTime;
+        double newTime = ThreadLocalRandom.current().nextDouble(attachmentTimes.get(minIdx), attachmentTimes.get(maxIdx));
+        while (attachmentTimes.contains(newTime))
+            // if attachment time already exists, generate a new one
+            newTime = ThreadLocalRandom.current().nextDouble(attachmentTimes.get(minIdx), attachmentTimes.get(maxIdx));
+        attachmentTimes.set(randIdx, newTime);
 
-        randIncidence.setOldTimeOfChangedCopy(attachmentTimes[randIdx]);
+        randIncidence.setOldTimeOfChangedCopy(attachmentTimes.get(randIdx));
         randIncidence.setNewTimeOfChangedCopy(newTime);
 
         randIncidence.setAttachmentTimes(attachmentTimes);

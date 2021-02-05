@@ -1768,6 +1768,7 @@ public class QuasiSpeciesTree extends Tree {
     /**
      * Filter out incidence data by their sequences (only N's) and store their
      * times, count and attachment times in the tree.
+     * Generates missing attachment times if necessary.
      *
      * @param data
      * @return A set of all taxa of incidence data.
@@ -1793,6 +1794,7 @@ public class QuasiSpeciesTree extends Tree {
             }
         }
 
+        // store attachment times as parents' heights
         for (Node node : tree.getExternalNodes()) {
             String taxon = node.getID();
             if (incidences.containsKey(taxon)) {
@@ -1800,14 +1802,15 @@ public class QuasiSpeciesTree extends Tree {
             }
         }
 
+        // generate missing attachment times
         for (QuasiSpeciesIncidence incidence : incidences.values()) {
             incidence.generateAttachmentTimes(tree.getRoot().getHeight());
         }
     }
 
     /**
-     * TODO
-     * @return
+     * Return incidences associated with this tree.
+     * @return A HashMap with incidence taxons as keys and QuasiSpeciesIncidence objects as values.
      */
     public HashMap<String, QuasiSpeciesIncidence> getIncidences() {
         return incidences;
