@@ -3,18 +3,13 @@ package piqmee.distributions;
 
 import beast.core.Citation;
 import beast.core.Description;
-import beast.core.util.Log;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.TreeInterface;
+import piqmee.tree.QuasiSpeciesIncidence;
 import piqmee.tree.QuasiSpeciesNode;
 import piqmee.tree.QuasiSpeciesTree;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
@@ -657,17 +652,17 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
         if (incidenceMap.size() > 0) {
             Collection<QuasiSpeciesIncidence> incidences = incidenceMap.values();
 
-            /*processFirstProductTermIncidences(incidences);
+            processFirstProductTermIncidences(((QuasiSpeciesTree) tree).getIncidences());
             if (Double.isInfinite(logP))
-                return logP;*/
+                return logP;
 
             /*processMiddleProductTermIncidences(incidences);
             if (Double.isInfinite(logP))
                 return logP;*/
 
-            processLastTermIncidences(tree, incidences);
+            /*processLastTermIncidences(tree, incidences);
             if (Double.isInfinite(logP))
-                return logP;
+                return logP;*/
         }
 
         // factor for all possible QS trees
@@ -809,6 +804,33 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
         		logP += currentFirstTerms[node.getNr()];
         	}
         }
+	}
+
+    HashMap<String, Double> currentIncidenceFirstTerms;
+    HashMap<String, Double> storedIncidenceFirstTerms;
+    HashMap<String, Double> storedIncidenceBirth, storedIncidenceAi, storedIncidenceBi;
+
+    private void processFirstProductTermIncidences(HashMap<String, QuasiSpeciesIncidence> incidences) {
+        // FIXME: Error "Likelihood incorrectly calculated"
+        Set<String> taxa = incidences.keySet();
+
+        if (currentIncidenceFirstTerms == null) {
+            currentIncidenceFirstTerms = new HashMap<>();
+            storedIncidenceFirstTerms = new HashMap<>();
+            storedIncidenceBirth = new HashMap<>();
+            storedIncidenceAi = new HashMap<>();
+            storedIncidenceBi = new HashMap<>();
+            for (String taxon : taxa) {
+                currentIncidenceFirstTerms.put(taxon, Double.NaN);
+                storedIncidenceFirstTerms.put(taxon, Double.NaN);
+            }
+        }
+
+        for (String taxon : taxa) {
+            QuasiSpeciesIncidence incidence = incidences.get(taxon);
+            double currentFirstTerm = currentIncidenceFirstTerms.get(taxon);
+            if (incidence.isAttachmentTimesListChanged() || Double.isNaN(currentFirstTerm)) {
+                double temp = 0;
 
 	}
 
@@ -840,6 +862,9 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
 			System.arraycopy(Bi, 0, storedBi, 0, Bi.length);
 			System.arraycopy(logNumberOfQSTrees, 0, storedLogNumberOfQSTrees, 0, logNumberOfQSTrees.length);
 		}
+		if (currentIncidenceFirstTerms != null) {
+		    storedIncidenceFirstTerms = (HashMap<String, Double>) currentIncidenceFirstTerms.clone();
+        }
 		super.store();
 	}
 
@@ -856,6 +881,10 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
 		tmp = Bi; Bi = storedBi; storedBi = tmp;
 		
 		tmp = logNumberOfQSTrees; logNumberOfQSTrees = storedLogNumberOfQSTrees; storedLogNumberOfQSTrees = tmp;
+
+		HashMap<String, Double> incidenceTmp = (HashMap<String, Double>) currentIncidenceFirstTerms.clone();
+		currentIncidenceFirstTerms = (HashMap<String, Double>) storedIncidenceFirstTerms.clone();
+		storedIncidenceFirstTerms = incidenceTmp;
 				
 		super.restore();
 	}
@@ -899,7 +928,6 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
             }
         }		
 	}
-
 
 	private void processLastTerm(final TreeInterface tree, final QuasiSpeciesTree qsTree, final int nTips) {
 

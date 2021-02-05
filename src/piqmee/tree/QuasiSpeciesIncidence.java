@@ -25,9 +25,8 @@ public class QuasiSpeciesIncidence {
 
     public QuasiSpeciesIncidence(QuasiSpeciesIncidence quasiSpeciesIncidence) {
         this.samplingTime = quasiSpeciesIncidence.samplingTime;
-        this.attachmentTimes = quasiSpeciesIncidence.attachmentTimes.clone();
+        this.attachmentTimes = (ArrayList<Double>) quasiSpeciesIncidence.attachmentTimes.clone();
         this.attachmentTimesListChanged = quasiSpeciesIncidence.attachmentTimesListChanged;
-        this.currentAttachmentTimeIndex = quasiSpeciesIncidence.currentAttachmentTimeIndex;
         this.count = quasiSpeciesIncidence.count;
     }
 

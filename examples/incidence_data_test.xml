@@ -275,7 +275,9 @@ t296=1
     <operator id="HaploSequenceReAttachUniform" spec="piqmee.operators.QuasiSpeciesSequenceAttachmentUniform" quasiSpeciesTree="@Tree" origin="@origin" weight="10.0"/>
     
     <operator id="HaploStartTimeReAttachUniform" spec="piqmee.operators.QuasiSpeciesSequenceAttachmentUniform" firstAttachmentOnly="true" quasiSpeciesTree="@Tree" origin="@origin" weight="5.0"/>
-    
+
+    <operator id="IncidenceSequenceReAttachUniform" spec="piqmee.operators.QuasiSpeciesIncidenceAttachmentUniform" quasiSpeciesTree="@Tree" origin="@origin" weight="5.0"/>
+
     <operator id="narrow" spec="piqmee.operators.QuasiSpeciesSubtreeExchange" quasiSpeciesTree="@Tree" origin="@origin" weight="5.0"/>
     
     <operator id="wide" spec="piqmee.operators.QuasiSpeciesSubtreeExchange" isNarrow="false" quasiSpeciesTree="@Tree" origin="@origin" weight="1.0"/>

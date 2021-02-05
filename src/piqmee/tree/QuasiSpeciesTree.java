@@ -1,19 +1,22 @@
 package piqmee.tree;
 
 import beast.app.beauti.BeautiDoc;
-import beast.core.*;
+import beast.core.BEASTInterface;
+import beast.core.Input;
+import beast.core.StateNode;
+import beast.core.StateNodeInitialiser;
 import beast.core.util.Log;
 import beast.evolution.alignment.Alignment;
 import beast.evolution.alignment.FilteredAlignment;
 import beast.evolution.alignment.Sequence;
 import beast.evolution.alignment.distance.Distance;
 import beast.evolution.datatype.DataType;
-import beast.evolution.likelihood.GenericTreeLikelihood;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.TraitSet;
 import beast.evolution.tree.Tree;
 import beast.util.TreeParser;
 import piqmee.distance.DifferenceCount;
+import beast.evolution.likelihood.GenericTreeLikelihood;
 
 import java.io.PrintStream;
 import java.util.*;
