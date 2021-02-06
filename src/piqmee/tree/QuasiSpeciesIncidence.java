@@ -3,10 +3,12 @@ package piqmee.tree;
 import beast.core.Description;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 @Description("An NNN sequence representing an unsequenced incidence case.")
 public class QuasiSpeciesIncidence {
     private final double samplingTime;
+    // list of attachment times associated with this incidence; always keep this sorted in ascending order
     private ArrayList<Double> attachmentTimes;
     private boolean attachmentTimesListChanged;
     private int count;
@@ -30,6 +32,10 @@ public class QuasiSpeciesIncidence {
         this.count = quasiSpeciesIncidence.count;
     }
 
+    public double getSamplingTime() {
+        return samplingTime;
+    }
+
     public ArrayList<Double> getAttachmentTimes() {
         return attachmentTimes;
     }
@@ -39,8 +45,12 @@ public class QuasiSpeciesIncidence {
         return getAttachmentTimes();
     }
 
+    /**
+     * Set attachment times associated with this incidence and sort by ascending order.
+     */
     public void setAttachmentTimes(ArrayList<Double> attachmentTimes) {
         this.attachmentTimes = attachmentTimes;
+        Collections.sort(this.attachmentTimes);
         attachmentTimesListChanged = true;
     }
 
