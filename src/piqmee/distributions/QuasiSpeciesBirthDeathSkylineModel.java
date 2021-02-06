@@ -588,9 +588,11 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
     private int incidenceLineageCountAtTime(Collection<QuasiSpeciesIncidence> incidences, double time) {
         int count = 0;
         for (QuasiSpeciesIncidence incidence : incidences) {
-            for (double attachmentTime : incidence.getAttachmentTimes()) {
-                if (attachmentTime > time)
-                    count++;
+            if (incidence.getSamplingTime() <= time) {
+                for (double attachmentTime : incidence.getAttachmentTimes()) {
+                    if (attachmentTime > time)
+                        count++;
+                }
             }
         }
 
