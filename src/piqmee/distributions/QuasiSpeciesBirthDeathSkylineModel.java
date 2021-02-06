@@ -412,7 +412,25 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
 //            }
 //        }
 	}
-    
+
+    /**
+     * Compute the (log) number of possible trees resulting from the merging of tree lineages and incidences.
+     */
+	private double logNumberOfIncidenceTrees(TreeInterface tree) {
+        QuasiSpeciesTree qsTree = (QuasiSpeciesTree) tree;
+        Collection<QuasiSpeciesIncidence> incidences = ((QuasiSpeciesTree) tree).getIncidences().values();
+
+        double gamma = 0;
+
+        for (double time : allTimes) {
+            int treeLineages = lineageCountAtTime(time, tree);
+            int incidenceLineages = incidenceLineageCountAtTime(incidences, time);
+            gamma += FastMathLog(treeLineages * (treeLineages - 1) + (double) (incidenceLineages * (incidenceLineages - 1)) / 2);
+        }
+
+        return gamma;
+    }
+
 	/**
      * Adds the number of qs duplicates to the count of tips at each of the contemporaneous sampling times ("rho" sampling time)
      * @return negative infinity if tips are found at a time when rho is zero, zero otherwise.
