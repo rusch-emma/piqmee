@@ -280,6 +280,8 @@ t296=1
 
     <operator id="IncidenceSequenceReAttachRandom" spec="piqmee.operators.QuasiSpeciesIncidenceAttachmentRandom" quasiSpeciesTree="@Tree" origin="@origin" weight="5.0"/>
 
+    <operator id="incidenceScaler" spec="piqmee.operators.QuasiSpeciesIncidencesScale" quasiSpeciesTree="@Tree" origin="@origin" scaleFactor="0.5" weight="2.0"/>
+
     <operator id="narrow" spec="piqmee.operators.QuasiSpeciesSubtreeExchange" quasiSpeciesTree="@Tree" origin="@origin" weight="5.0"/>
     
     <operator id="wide" spec="piqmee.operators.QuasiSpeciesSubtreeExchange" isNarrow="false" quasiSpeciesTree="@Tree" origin="@origin" weight="1.0"/>
