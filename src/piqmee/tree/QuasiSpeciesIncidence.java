@@ -13,6 +13,8 @@ public class QuasiSpeciesIncidence {
     private boolean attachmentTimesListChanged;
     private int count;
 
+    private boolean isRhoSampled;
+
     // variables storing old and new attachment time if only a single one was changed via operators
     //  -1 if not changed
     private double oldTimeOfChangedCopy = -1;
@@ -23,6 +25,7 @@ public class QuasiSpeciesIncidence {
         this.count = count;
         this.attachmentTimes = new ArrayList<>(count);
         attachmentTimesListChanged = false;
+        this.isRhoSampled = false;
     }
 
     public QuasiSpeciesIncidence(QuasiSpeciesIncidence quasiSpeciesIncidence) {
@@ -30,6 +33,7 @@ public class QuasiSpeciesIncidence {
         this.attachmentTimes = (ArrayList<Double>) quasiSpeciesIncidence.attachmentTimes.clone();
         this.attachmentTimesListChanged = quasiSpeciesIncidence.attachmentTimesListChanged;
         this.count = quasiSpeciesIncidence.count;
+        this.isRhoSampled = quasiSpeciesIncidence.isRhoSampled;
     }
 
     public double getSamplingTime() {
@@ -72,6 +76,14 @@ public class QuasiSpeciesIncidence {
 
     public void addCount(int count) {
         this.count += count;
+    }
+
+    public void setRhoSampled(boolean isRhoSampled) {
+        this.isRhoSampled = isRhoSampled;
+    }
+
+    public boolean isRhoSampled() {
+        return isRhoSampled;
     }
 
     public double getOldTimeOfChangedCopy() {

@@ -31,6 +31,8 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
 
     ArrayList isRhoTip;
     double[] uniqueSampTimes;
+
+    private int[] incidenceN;
     
     private double [] log;
 
@@ -472,9 +474,34 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
             }
             isRhoTip.add(i,isRhoTipArray);
         }
-        return 0.;
+
+        Collection<QuasiSpeciesIncidence> incidences = ((QuasiSpeciesTree) tree).getIncidences().values();
+        if (incidences.size() > 0)
+            return computeIncidencesN(incidences, maxdate);
+        else
+            return 0.;
     }
 
+    private double computeIncidencesN(Collection<QuasiSpeciesIncidence> incidences, double maxdate) {
+        incidenceN = new int[totalIntervals];
+
+        for (QuasiSpeciesIncidence incidence : incidences) {
+                for (int k = 0; k < totalIntervals; k++) {
+                    if (Math.abs(((times[totalIntervals - 1] - times[k]) - incidence.getSamplingTime())/maxdate) < 1e-10 ||
+                    (maxdate == 0 && Math.abs((times[totalIntervals - 1] - times[k]) - incidence.getSamplingTime()) < 1e-10)) {
+                        if (rho[k] == 0 && psi[k] == 0) {
+                            return Double.NEGATIVE_INFINITY;
+                        }
+                        if (rho[k] > 0) {
+                            incidenceN[k]++;
+                            incidence.setRhoSampled(true);
+                        }
+                    }
+                }
+        }
+
+        return 0.;
+    }
 
     /*    calculate and store Ai, Bi and p0        */
     @Override
