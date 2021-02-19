@@ -485,13 +485,17 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
             return 0.;
     }
 
-    private double computeIncidencesN(QuasiSpeciesIncidence[] incidences, double maxdate) {
+    /**
+     * Counts the number of incidences which have been sampled at contemporaneous sampling times ("rho" sampling time).
+     * @return Negative infinity if incidences are found at a time when rho is 0, 0 otherwise.
+     */
+    private double computeIncidencesN(QuasiSpeciesIncidence[] incidences, double maxDate) {
         incidenceN = new int[totalIntervals];
 
         for (QuasiSpeciesIncidence incidence : incidences) {
                 for (int k = 0; k < totalIntervals; k++) {
-                    if (Math.abs(((times[totalIntervals - 1] - times[k]) - incidence.getSamplingTime())/maxdate) < 1e-10 ||
-                    (maxdate == 0 && Math.abs((times[totalIntervals - 1] - times[k]) - incidence.getSamplingTime()) < 1e-10)) {
+                    if (Math.abs(((times[totalIntervals - 1] - times[k]) - incidence.getSamplingTime())/maxDate) < 1e-10 ||
+                    (maxDate == 0 && Math.abs((times[totalIntervals - 1] - times[k]) - incidence.getSamplingTime()) < 1e-10)) {
                         if (rho[k] == 0 && psi[k] == 0) {
                             return Double.NEGATIVE_INFINITY;
                         }
