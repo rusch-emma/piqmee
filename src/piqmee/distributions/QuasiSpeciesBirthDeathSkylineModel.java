@@ -424,7 +424,7 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
 
         double gamma = 0;
 
-        for (double time : allTimes) {
+        for (double time : allAttachmentTimes) {
             int treeLineages = lineageCountAtTime(time, tree);
             int incidenceLineages = incidenceLineageCountAtTime(incidences, time);
             // divide count of incidence merges by 2 to remove rotated identical pairs
