@@ -55,13 +55,15 @@ public class QuasiSpeciesIncidenceAttachmentRandom extends QuasiSpeciesTreeOpera
         while (minIdx == -1 || minIdx == randAttIdx)
             minIdx = Randomizer.nextInt(attachmentTimes.size() - 1);
         int maxIdx = minIdx + 1;
-        double tmin = attachmentTimes.get(minIdx);
-        double tmax = attachmentTimes.get(maxIdx);
+        double tMin = attachmentTimes.get(minIdx);
+        double tMax = attachmentTimes.get(maxIdx);
 
         // randomly choose new time in interval
-        double newTime = Double.NaN;
-        while (Double.isNaN(newTime) || attachmentTimes.contains(newTime))
-            newTime = ThreadLocalRandom.current().nextDouble(tmin, tmax);
+        double newTime = ThreadLocalRandom.current().nextDouble(tMin, tMax);
+
+        // if attachment time already exists, put between bounds
+        if (attachmentTimes.contains(newTime))
+            newTime = (tMax + tMin) / 2;
 
         // pick interval around selected incidence
         int oldMinIdx = randAttIdx == 0 ? 0 : randAttIdx - 1;
@@ -77,6 +79,6 @@ public class QuasiSpeciesIncidenceAttachmentRandom extends QuasiSpeciesTreeOpera
         randIncidence.setAttachmentTimes(attachmentTimes);
 
         // return log Hastings ratio
-        return -Math.log(oldTmax - oldTmin) + Math.log(tmax - tmin);
+        return -Math.log(oldTmax - oldTmin) + Math.log(tMax - tMin);
     }
 }

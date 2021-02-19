@@ -46,18 +46,20 @@ public class QuasiSpeciesIncidenceAttachmentUniform extends QuasiSpeciesTreeOper
 
         // choose random attachment time from incidence
         ArrayList<Double> attachmentTimes = randIncidence.getAttachmentTimes();
-        ArrayList<Double> old = new ArrayList<>(attachmentTimes);
         int randAttIdx = Randomizer.nextInt(attachmentTimes.size());
 
         // select interval around random attachment time to change
         int minIdx = randAttIdx == 0 ? 0 : randAttIdx - 1;
         int maxIdx = randAttIdx == attachmentTimes.size() - 1 ? attachmentTimes.size() - 1 : randAttIdx + 1;
+        double tMin = attachmentTimes.get(minIdx);
+        double tMax = attachmentTimes.get(maxIdx);
 
         // randomly choose new time in selected interval
-        double newTime = Double.NaN;
-        // randomly choose new attachment time which does not already exist
-        while (Double.isNaN(newTime) || attachmentTimes.contains(newTime))
-            newTime = ThreadLocalRandom.current().nextDouble(attachmentTimes.get(minIdx), attachmentTimes.get(maxIdx));
+        double newTime = ThreadLocalRandom.current().nextDouble(attachmentTimes.get(minIdx));
+
+        // if attachment time already exists, put between bounds
+        if (attachmentTimes.contains(newTime))
+            newTime = (tMax + tMin) / 2;
 
         randIncidence.setOldTimeOfChangedCopy(attachmentTimes.get(randAttIdx));
         attachmentTimes.set(randAttIdx, newTime);
