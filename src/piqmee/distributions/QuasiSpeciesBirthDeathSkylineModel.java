@@ -430,7 +430,8 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
             int treeLineages = lineageCountAtTime(time, tree);
             int incidenceLineages = incidenceLineageCountAtTime(incidences, time);
             // divide count of incidence merges by 2 to remove rotated identical pairs
-            gamma += FastMathLog(treeLineages * incidenceLineages + (double) (incidenceLineages * (incidenceLineages - 1)) / 2);
+            double n = treeLineages * incidenceLineages + (double) (incidenceLineages * (incidenceLineages - 1)) / 2;
+            gamma += n == 0 ? 0 : FastMathLog(n);
         }
 
         return gamma;
@@ -712,15 +713,17 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
             if (Double.isInfinite(logP))
                 return logP;*/
 
-            /*processLastTermIncidences(tree, incidences);
+            processLastTermIncidences(tree, incidences);
             if (Double.isInfinite(logP))
-                return logP;*/
+                return logP;
         }
 
         // factor for all possible QS trees
         logP += logNumberOfQSTrees(tree);
         if (Double.isInfinite(logP))
             return logP;
+
+        logP += logNumberOfIncidenceTrees(tree);
 
 //        if (SAModel) {
 //            int internalNodeCount = tree.getLeafNodeCount() - ((Tree)tree).getDirectAncestorNodeCount()- 1;
@@ -1049,7 +1052,7 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
 	    double time;
 	    for (int j = 0; j < totalIntervals; j++) {
 	        time = j < 1 ? 0 : times[j - 1];
-            final int nj = j == 0 ? 0 : incidenceLineageCountAtTime(incidences, times[totalIntervals - 1] -time);
+            final int nj = j == 0 ? 0 : incidenceLineageCountAtTime(incidences, times[totalIntervals - 1] - time);
             if (nj > 0) {
                 double temp = nj * (log_q(j, times[j], time) + FastMathLog(1 - rho[j - 1]));
                 logP += temp;
@@ -1059,8 +1062,8 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
                     return;
             }
 
-            if (rho[j] > 0 && N[j] > 0) {
-                double temp = N[j] * FastMathLog(rho[j]);    // term for contemporaneous sampling
+            if (rho[j] > 0 && incidenceN[j] > 0) {
+                double temp = incidenceN[j] * FastMathLog(rho[j]);    // term for contemporaneous sampling
                 logP += temp;
                 if (printTempResults)
                     System.out.println("3rd factor (Nj loop) = " + temp + "; interval = " + j + "; N[j] = " + N[j]);
