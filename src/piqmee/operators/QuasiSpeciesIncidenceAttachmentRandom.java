@@ -19,7 +19,7 @@ public class QuasiSpeciesIncidenceAttachmentRandom extends QuasiSpeciesTreeOpera
     @Override
     public void initAndValidate() {
         super.initAndValidate();
-        if (qsTree.getIncidences().size() == 0) {
+        if (qsTree.getIncidences().length == 0) {
             System.out.println("In QuasiSpeciesIncidenceAttachmentRandom operator --- "
                     + "there are no incidences. The QuasiSpeciesIncidenceAttachmentRandom "
                     + "operator cannot be used. Please remove it from your xml file.");
@@ -33,23 +33,26 @@ public class QuasiSpeciesIncidenceAttachmentRandom extends QuasiSpeciesTreeOpera
      */
     @Override
     public double proposal() {
-        if (qsTree.getIncidences().size() == 0) {
+        qsTree.startEditing(null);
+
+        QuasiSpeciesIncidence[] incidences = qsTree.getIncidences();
+
+        if (incidences.length == 0) {
             return 0.0;
         }
 
         // choose random incidence
-        List<String> incidenceTaxa = new ArrayList<>(qsTree.getIncidences().keySet());
-        int randKey = Randomizer.nextInt(incidenceTaxa.size());
-        QuasiSpeciesIncidence randIncidence = qsTree.getIncidences().get(incidenceTaxa.get(randKey));
+        int randIncIdx = Randomizer.nextInt(incidences.length);
+        QuasiSpeciesIncidence randIncidence = incidences[randIncIdx];
 
         // choose random attachment time from incidence
         ArrayList<Double> attachmentTimes = randIncidence.getAttachmentTimes();
-        int randIdx = Randomizer.nextInt(attachmentTimes.size());
+        int randAttIdx = Randomizer.nextInt(attachmentTimes.size());
 
         // choose random interval: lower bound = random, upper bound = next time above lower bound
         int minIdx = -1;
         // randomly choose lower bound != selected attachment time
-        while (minIdx == -1 || minIdx == randIdx)
+        while (minIdx == -1 || minIdx == randAttIdx)
             minIdx = Randomizer.nextInt(attachmentTimes.size() - 1);
         int maxIdx = minIdx + 1;
         double tmin = attachmentTimes.get(minIdx);
@@ -61,14 +64,14 @@ public class QuasiSpeciesIncidenceAttachmentRandom extends QuasiSpeciesTreeOpera
             newTime = ThreadLocalRandom.current().nextDouble(tmin, tmax);
 
         // pick interval around selected incidence
-        int oldMinIdx = randIdx == 0 ? 0 : randIdx - 1;
-        int oldMaxIdx = randIdx == attachmentTimes.size() - 1 ? attachmentTimes.size() - 1 : randIdx + 1;
+        int oldMinIdx = randAttIdx == 0 ? 0 : randAttIdx - 1;
+        int oldMaxIdx = randAttIdx == attachmentTimes.size() - 1 ? attachmentTimes.size() - 1 : randAttIdx + 1;
         double oldTmin = attachmentTimes.get(oldMinIdx);
         double oldTmax = attachmentTimes.get(oldMaxIdx);
 
         // set new attachment time
-        randIncidence.setOldTimeOfChangedCopy(attachmentTimes.get(randIdx));
-        attachmentTimes.set(randIdx, newTime);
+        randIncidence.setOldTimeOfChangedCopy(attachmentTimes.get(randAttIdx));
+        attachmentTimes.set(randAttIdx, newTime);
         randIncidence.setNewTimeOfChangedCopy(newTime);
 
         randIncidence.setAttachmentTimes(attachmentTimes);

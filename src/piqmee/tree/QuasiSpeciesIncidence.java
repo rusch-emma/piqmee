@@ -10,6 +10,8 @@ public class QuasiSpeciesIncidence {
     private final double samplingTime;
     // list of attachment times associated with this incidence; always keep this sorted in ascending order
     private ArrayList<Double> attachmentTimes;
+    private ArrayList<Double> storedAttachmentTimes;
+
     private boolean attachmentTimesListChanged;
     private int count;
 
@@ -59,7 +61,9 @@ public class QuasiSpeciesIncidence {
     }
 
     public void addAttachmentTime(double attachmentTime) {
-        attachmentTimes.add(attachmentTime);
+        if (!attachmentTimes.contains(attachmentTime))
+            attachmentTimes.add(attachmentTime);
+        Collections.sort(attachmentTimes);
     }
 
     public boolean isAttachmentTimesListChanged() {
@@ -102,21 +106,28 @@ public class QuasiSpeciesIncidence {
         this.newTimeOfChangedCopy = newTimeOfChangedCopy;
     }
 
+    public void store() {
+        storedAttachmentTimes = new ArrayList<>(attachmentTimes);
+    }
+
+    public void restore() {
+        ArrayList<Double> tmp = new ArrayList<>(attachmentTimes);
+        attachmentTimes = storedAttachmentTimes;
+        storedAttachmentTimes = tmp;
+    }
+
     /**
      * Generates all missing attachment times for this incidence in equal step
      * from a specified lower bound (e.g. root) up to this incidence's sampling time.
      */
-    public void generateAttachmentTimes(double lowerBound) {
-        double step = (samplingTime - lowerBound) / (count - attachmentTimes.size());
-
-        if (attachmentTimes.isEmpty()) {
-            // if no attachment times exist initialise with the first step
-            attachmentTimes.add(step);
-        }
+    public void generateAttachmentTimes(double upperBound) {
+        double step = (upperBound - samplingTime) / (count - attachmentTimes.size());
+        attachmentTimes.add(step);
 
         for (int i = attachmentTimes.size(); i < count; i++) {
             attachmentTimes.add(attachmentTimes.get(i - 1) + step);
-            //attachmentTimes.set(i, attachmentTimes.get(i - 1) + step);
         }
+
+        Collections.sort(attachmentTimes);
     }
 }

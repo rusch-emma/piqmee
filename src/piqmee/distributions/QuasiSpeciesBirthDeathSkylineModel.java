@@ -419,8 +419,10 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
      * Compute the (log) number of possible trees resulting from the merging of tree lineages and incidences.
      */
 	private double logNumberOfIncidenceTrees(TreeInterface tree) {
-        QuasiSpeciesTree qsTree = (QuasiSpeciesTree) tree;
-        Collection<QuasiSpeciesIncidence> incidences = ((QuasiSpeciesTree) tree).getIncidences().values();
+        QuasiSpeciesIncidence[] incidences = ((QuasiSpeciesTree) tree).getIncidences();
+        List<Double> allAttachmentTimes = new ArrayList<>();
+        for (QuasiSpeciesIncidence incidence : incidences)
+            allAttachmentTimes.addAll(incidence.getAttachmentTimes());
 
         double gamma = 0;
 
@@ -476,14 +478,14 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
             isRhoTip.add(i,isRhoTipArray);
         }
 
-        Collection<QuasiSpeciesIncidence> incidences = ((QuasiSpeciesTree) tree).getIncidences().values();
-        if (incidences.size() > 0)
+        QuasiSpeciesIncidence[] incidences = ((QuasiSpeciesTree) tree).getIncidences();
+        if (incidences.length > 0)
             return computeIncidencesN(incidences, maxdate);
         else
             return 0.;
     }
 
-    private double computeIncidencesN(Collection<QuasiSpeciesIncidence> incidences, double maxdate) {
+    private double computeIncidencesN(QuasiSpeciesIncidence[] incidences, double maxdate) {
         incidenceN = new int[totalIntervals];
 
         for (QuasiSpeciesIncidence incidence : incidences) {
@@ -631,10 +633,10 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
         return count;
     }
 
-    private int incidenceLineageCountAtTime(Collection<QuasiSpeciesIncidence> incidences, double time) {
+    private int incidenceLineageCountAtTime(QuasiSpeciesIncidence[] incidences, double time) {
         int count = 0;
         for (QuasiSpeciesIncidence incidence : incidences) {
-            if (incidence.getSamplingTime() <= time) {
+            if (incidence.getSamplingTime() < time) {
                 for (double attachmentTime : incidence.getAttachmentTimes()) {
                     if (attachmentTime > time)
                         count++;
@@ -696,11 +698,9 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
         if (Double.isInfinite(logP))
             return logP;
 
-        HashMap<String, QuasiSpeciesIncidence> incidenceMap = ((QuasiSpeciesTree) tree).getIncidences();
-        if (incidenceMap.size() > 0) {
-            Collection<QuasiSpeciesIncidence> incidences = incidenceMap.values();
-
-            processFirstProductTermIncidences(((QuasiSpeciesTree) tree).getIncidences());
+        QuasiSpeciesIncidence[] incidences = ((QuasiSpeciesTree) tree).getIncidences();
+        if (incidences.length > 0) {
+            processFirstProductTermIncidences(incidences);
             if (Double.isInfinite(logP))
                 return logP;
 
@@ -854,33 +854,51 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
         }
 	}
 
-    HashMap<String, Double> currentIncidenceFirstTerms;
-    HashMap<String, Double> storedIncidenceFirstTerms;
-    HashMap<String, Double> storedIncidenceBirth, storedIncidenceAi, storedIncidenceBi;
+    double[] currentIncidenceFirstTerms;
+    double[] storedIncidenceFirstTerms;
 
-    private void processFirstProductTermIncidences(HashMap<String, QuasiSpeciesIncidence> incidences) {
-        // FIXME: Error "Likelihood incorrectly calculated"
-        Set<String> taxa = incidences.keySet();
-
+    private void processFirstProductTermIncidences(QuasiSpeciesIncidence[] incidences) {
         if (currentIncidenceFirstTerms == null) {
-            currentIncidenceFirstTerms = new HashMap<>();
-            storedIncidenceFirstTerms = new HashMap<>();
-            storedIncidenceBirth = new HashMap<>();
-            storedIncidenceAi = new HashMap<>();
-            storedIncidenceBi = new HashMap<>();
-            for (String taxon : taxa) {
-                currentIncidenceFirstTerms.put(taxon, Double.NaN);
-                storedIncidenceFirstTerms.put(taxon, Double.NaN);
-            }
+            currentIncidenceFirstTerms = new double[incidences.length];
+            storedIncidenceFirstTerms = new double[incidences.length];
+            Arrays.fill(currentIncidenceFirstTerms, Double.NaN);
+            Arrays.fill(storedIncidenceFirstTerms, Double.NaN);
         }
 
-        for (String taxon : taxa) {
-            QuasiSpeciesIncidence incidence = incidences.get(taxon);
-            double currentFirstTerm = currentIncidenceFirstTerms.get(taxon);
+        for (int i = 0; i < incidences.length; i++) {
+            double currentFirstTerm = currentIncidenceFirstTerms[i];
+            QuasiSpeciesIncidence incidence = incidences[i];
             if (incidence.isAttachmentTimesListChanged() || Double.isNaN(currentFirstTerm)) {
                 double temp = 0;
 
-	}
+                if (!Double.isNaN(currentFirstTerm) && incidence.getOldTimeOfChangedCopy() != -1) {
+                    // deduction of contribution from old time
+                    double x = times[totalIntervals - 1] - incidence.getOldTimeOfChangedCopy();
+                    int index = index(x);
+                    temp -= FastMathLog(birth[index]) + log_q(index, times[index], x);
+                    incidence.setOldTimeOfChangedCopy(-1);
+                    // addition of contribution from new time
+                    x = times[totalIntervals - 1] - incidence.getNewTimeOfChangedCopy();
+                    index = index(x);
+                    temp += FastMathLog(birth[index]) + log_q(index, times[index], x);
+
+                    incidence.setNewTimeOfChangedCopy(-1);
+                } else {
+                    // recalculate for all attachment times
+                    for (double time : incidence.getAttachmentTimes()) {
+                        double x = times[totalIntervals - 1] - time;
+                        final int index = index(x);
+                        temp += FastMathLog(birth[index]) + log_q(index, times[index], x);
+                    }
+                }
+
+                logP += temp;
+                currentIncidenceFirstTerms[i] = temp;
+            } else {
+                logP += currentFirstTerm;
+            }
+        }
+    }
 
 	private boolean bsdkyIsDirty() {
 		for (int i = 0; i < birth.length; i++) {
@@ -910,9 +928,11 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
 			System.arraycopy(Bi, 0, storedBi, 0, Bi.length);
 			System.arraycopy(logNumberOfQSTrees, 0, storedLogNumberOfQSTrees, 0, logNumberOfQSTrees.length);
 		}
-		if (currentIncidenceFirstTerms != null) {
-		    storedIncidenceFirstTerms = (HashMap<String, Double>) currentIncidenceFirstTerms.clone();
+
+        if (currentIncidenceFirstTerms != null) {
+            System.arraycopy(currentIncidenceFirstTerms, 0, storedIncidenceFirstTerms, 0, currentIncidenceFirstTerms.length);
         }
+
 		super.store();
 	}
 
@@ -930,8 +950,8 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
 		
 		tmp = logNumberOfQSTrees; logNumberOfQSTrees = storedLogNumberOfQSTrees; storedLogNumberOfQSTrees = tmp;
 
-		HashMap<String, Double> incidenceTmp = (HashMap<String, Double>) currentIncidenceFirstTerms.clone();
-		currentIncidenceFirstTerms = (HashMap<String, Double>) storedIncidenceFirstTerms.clone();
+		double[] incidenceTmp = currentIncidenceFirstTerms;
+		currentIncidenceFirstTerms = storedIncidenceFirstTerms;
 		storedIncidenceFirstTerms = incidenceTmp;
 				
 		super.restore();
@@ -1021,13 +1041,11 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
         }	
     }
 
-    private void processLastTermIncidences(final TreeInterface tree, Collection<QuasiSpeciesIncidence> incidences) {
+    private void processLastTermIncidences(final TreeInterface tree, QuasiSpeciesIncidence[] incidences) {
 	    double time;
 	    for (int j = 0; j < totalIntervals; j++) {
 	        time = j < 1 ? 0 : times[j - 1];
-	        int incidenceLineages = incidenceLineageCountAtTime(incidences, times[totalIntervals - 1]);
-            final int nj = j == 0 ? 0 :
-                    lineageCountAtTime(times[totalIntervals - 1] - time, tree) + (incidenceLineages * (incidenceLineages - 1)) / 2;
+            final int nj = j == 0 ? 0 : incidenceLineageCountAtTime(incidences, times[totalIntervals - 1] -time);
             if (nj > 0) {
                 double temp = nj * (log_q(j, times[j], time) + FastMathLog(1 - rho[j - 1]));
                 logP += temp;

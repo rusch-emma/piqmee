@@ -32,8 +32,8 @@ public class QuasiSpeciesIncidencesScale extends QuasiSpeciesTreeOperator {
     @Override
     public void initAndValidate() {
         super.initAndValidate();
-        if (qsTree.getIncidences().size() == 0) {
-            System.out.println("In QuasiSpeciesIncidencesScalce operator --- "
+        if (qsTree.getIncidences().length == 0) {
+            System.out.println("In QuasiSpeciesIncidencesScale operator --- "
                     + "there are no incidences. The QuasiSpeciesIncidencesScalce "
                     + "operator cannot be used. Please remove it from your xml file.");
         }
@@ -45,14 +45,17 @@ public class QuasiSpeciesIncidencesScale extends QuasiSpeciesTreeOperator {
 
     @Override
     public double proposal() {
-        if (qsTree.getIncidences().size() == 0) {
+        qsTree.startEditing(null);
+
+        QuasiSpeciesIncidence[] incidences = qsTree.getIncidences();
+
+        if (incidences.length == 0) {
             return 0.0;
         }
 
         // choose random incidence
-        List<String> incidenceTaxa = new ArrayList<>(qsTree.getIncidences().keySet());
-        int randKey = Randomizer.nextInt(incidenceTaxa.size());
-        QuasiSpeciesIncidence randIncidence = qsTree.getIncidences().get(incidenceTaxa.get(randKey));
+        int randIncIdx = Randomizer.nextInt(incidences.length);
+        QuasiSpeciesIncidence randIncidence = incidences[randIncIdx];
         ArrayList<Double> attachmentTimes = randIncidence.getAttachmentTimes();
 
         // choose scale factor
@@ -64,8 +67,8 @@ public class QuasiSpeciesIncidencesScale extends QuasiSpeciesTreeOperator {
         double logHastingsRatio = 0.0;
 
         // abort if attachment times would be < 0 or >= incidence's sampling time
-        if (attachmentTimes.get(0) * f < 0 ||
-                attachmentTimes.get(attachmentTimes.size() - 1) >= randIncidence.getSamplingTime()) {
+        if (attachmentTimes.get(0) * f < randIncidence.getSamplingTime() ||
+                attachmentTimes.get(attachmentTimes.size() - 1) >= origin.getValue()) {
             return Double.NEGATIVE_INFINITY;
         }
 

@@ -18,7 +18,7 @@ public class QuasiSpeciesIncidenceAttachmentUniform extends QuasiSpeciesTreeOper
     @Override
     public void initAndValidate() {
         super.initAndValidate();
-        if (qsTree.getIncidences().size() == 0) {
+        if (qsTree.getIncidences().length == 0) {
             System.out.println("In QuasiSpeciesIncidenceAttachmentUniform operator --- "
                     + "there are no incidences. The QuasiSpeciesIncidenceAttachmentUniform "
                     + "operator cannot be used. Please remove it from your xml file.");
@@ -32,22 +32,26 @@ public class QuasiSpeciesIncidenceAttachmentUniform extends QuasiSpeciesTreeOper
      */
     @Override
     public double proposal() {
-        if (qsTree.getIncidences().size() == 0) {
+        qsTree.startEditing(null);
+
+        QuasiSpeciesIncidence[] incidences = qsTree.getIncidences();
+
+        if (incidences.length == 0) {
             return 0.0;
         }
 
         // choose random incidence
-        List<String> incidenceTaxa = new ArrayList<>(qsTree.getIncidences().keySet());
-        int randKey = Randomizer.nextInt(incidenceTaxa.size());
-        QuasiSpeciesIncidence randIncidence = qsTree.getIncidences().get(incidenceTaxa.get(randKey));
+        int randIncIdx = Randomizer.nextInt(incidences.length);
+        QuasiSpeciesIncidence randIncidence = incidences[randIncIdx];
 
         // choose random attachment time from incidence
         ArrayList<Double> attachmentTimes = randIncidence.getAttachmentTimes();
-        int randIdx = Randomizer.nextInt(attachmentTimes.size());
+        ArrayList<Double> old = new ArrayList<>(attachmentTimes);
+        int randAttIdx = Randomizer.nextInt(attachmentTimes.size());
 
         // select interval around random attachment time to change
-        int minIdx = randIdx == 0 ? 0 : randIdx - 1;
-        int maxIdx = randIdx == attachmentTimes.size() - 1 ? attachmentTimes.size() - 1 : randIdx + 1;
+        int minIdx = randAttIdx == 0 ? 0 : randAttIdx - 1;
+        int maxIdx = randAttIdx == attachmentTimes.size() - 1 ? attachmentTimes.size() - 1 : randAttIdx + 1;
 
         // randomly choose new time in selected interval
         double newTime = Double.NaN;
@@ -55,8 +59,8 @@ public class QuasiSpeciesIncidenceAttachmentUniform extends QuasiSpeciesTreeOper
         while (Double.isNaN(newTime) || attachmentTimes.contains(newTime))
             newTime = ThreadLocalRandom.current().nextDouble(attachmentTimes.get(minIdx), attachmentTimes.get(maxIdx));
 
-        randIncidence.setOldTimeOfChangedCopy(attachmentTimes.get(randIdx));
-        attachmentTimes.set(randIdx, newTime);
+        randIncidence.setOldTimeOfChangedCopy(attachmentTimes.get(randAttIdx));
+        attachmentTimes.set(randAttIdx, newTime);
         randIncidence.setNewTimeOfChangedCopy(newTime);
 
         randIncidence.setAttachmentTimes(attachmentTimes);
