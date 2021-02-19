@@ -66,7 +66,7 @@ public class QuasiSpeciesIncidence {
         Collections.sort(attachmentTimes);
     }
 
-    public boolean isAttachmentTimesListChanged() {
+    public boolean attachmentTimesListChanged() {
         return attachmentTimesListChanged;
     }
 

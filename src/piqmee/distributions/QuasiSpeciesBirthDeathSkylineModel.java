@@ -868,7 +868,7 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
         for (int i = 0; i < incidences.length; i++) {
             double currentFirstTerm = currentIncidenceFirstTerms[i];
             QuasiSpeciesIncidence incidence = incidences[i];
-            if (incidence.isAttachmentTimesListChanged() || Double.isNaN(currentFirstTerm)) {
+            if (incidence.attachmentTimesListChanged() || Double.isNaN(currentFirstTerm)) {
                 double temp = 0;
 
                 if (!Double.isNaN(currentFirstTerm) && incidence.getOldTimeOfChangedCopy() != -1) {
@@ -893,7 +893,7 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
                 }
 
                 logP += temp;
-                currentIncidenceFirstTerms[i] = temp;
+                currentIncidenceFirstTerms[i] += temp;
             } else {
                 logP += currentFirstTerm;
             }
