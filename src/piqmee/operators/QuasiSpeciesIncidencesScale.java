@@ -66,7 +66,7 @@ public class QuasiSpeciesIncidencesScale extends QuasiSpeciesTreeOperator {
         double logf = Math.log(f);
         double logHastingsRatio = 0.0;
 
-        // abort if attachment times would be < 0 or >= incidence's sampling time
+        // abort if attachment times would be < sampling time or >= origin
         if (attachmentTimes.get(0) * f < randIncidence.getSamplingTime() ||
                 attachmentTimes.get(attachmentTimes.size() - 1) >= origin.getValue()) {
             return Double.NEGATIVE_INFINITY;

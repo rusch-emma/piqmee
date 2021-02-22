@@ -118,14 +118,16 @@ public class QuasiSpeciesIncidence {
 
     /**
      * Generates all missing attachment times for this incidence in equal step
-     * from a specified lower bound (e.g. root) up to this incidence's sampling time.
+     * from a specified upper bound (e.g. root) up to this incidence's sampling time.
      */
     public void generateAttachmentTimes(double upperBound) {
-        double step = (upperBound - samplingTime) / (count - attachmentTimes.size());
-        attachmentTimes.add(step);
+        if (attachmentTimes.size() < count) {
+            double step = (upperBound - samplingTime) / (count - attachmentTimes.size());
+            attachmentTimes.add(step);
 
-        for (int i = attachmentTimes.size(); i < count; i++) {
-            attachmentTimes.add(attachmentTimes.get(i - 1) + step);
+            for (int i = attachmentTimes.size(); i < count; i++) {
+                attachmentTimes.add(attachmentTimes.get(i - 1) + step);
+            }
         }
 
         Collections.sort(attachmentTimes);

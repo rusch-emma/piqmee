@@ -418,7 +418,7 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
     /**
      * Compute the (log) number of possible trees resulting from the merging of tree lineages and incidences.
      */
-	private double logNumberOfIncidenceTrees(TreeInterface tree) {
+	public double logNumberOfIncidenceTrees(TreeInterface tree) {
         QuasiSpeciesIncidence[] incidences = ((QuasiSpeciesTree) tree).getIncidences();
         List<Double> allAttachmentTimes = new ArrayList<>();
         for (QuasiSpeciesIncidence incidence : incidences)
@@ -638,7 +638,14 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
         return count;
     }
 
-    private int incidenceLineageCountAtTime(QuasiSpeciesIncidence[] incidences, double time) {
+    /**
+     * Returns the number of existing lineages at a given time.
+     *
+     * @param incidences An array of incidences.
+     * @param time The time point to check incidence lineages for.
+     * @return The number of incidence lineages that exist at the given time.
+     */
+    public int incidenceLineageCountAtTime(QuasiSpeciesIncidence[] incidences, double time) {
         int count = 0;
         for (QuasiSpeciesIncidence incidence : incidences) {
             if (incidence.getSamplingTime() < time) {
@@ -1048,7 +1055,7 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
         }	
     }
 
-    private void processLastTermIncidences(final TreeInterface tree, QuasiSpeciesIncidence[] incidences) {
+    private void processLastTermIncidences(QuasiSpeciesIncidence[] incidences) {
 	    double time;
 	    for (int j = 0; j < totalIntervals; j++) {
 	        time = j < 1 ? 0 : times[j - 1];
