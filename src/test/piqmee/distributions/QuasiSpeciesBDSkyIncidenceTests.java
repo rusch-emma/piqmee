@@ -119,4 +119,32 @@ public class QuasiSpeciesBDSkyIncidenceTests {
 
         assertEquals(expectedLogCount, actualLogCount, 1e-5);
     }
+
+    @Test
+    public void testCalculateIncidencesLogLikelihood() {
+        final RealParameter origin = new RealParameter("7.0");
+        final boolean conditionOnSurvival = false;
+        final RealParameter birth = new RealParameter("2.0");
+        final RealParameter death = new RealParameter("1.0");
+        final RealParameter sampling = new RealParameter("0.5");
+
+        QuasiSpeciesTree tree = getQuasiSpeciesTree();
+        QuasiSpeciesBirthDeathSkylineModel qsbdSkyModel = getQSBDSkyModel(tree, origin, conditionOnSurvival, birth, death, sampling);
+
+        // processFirstProductTerm + processMiddleTerm + processLastTerm
+        double qsLogP = -18.571457786951814;
+
+        // contribution from incidences
+        double firstProductTerm = -29.611181748098154;
+        double middleTerm = 0.0;
+        double lastTerm = 0.0;
+        double logNumberOfIncidenceTrees = qsbdSkyModel.logNumberOfIncidenceTrees(tree);
+
+        double actualLogP = qsLogP + qsbdSkyModel.logNumberOfQSTrees(tree) +
+                firstProductTerm + middleTerm + lastTerm + logNumberOfIncidenceTrees;
+
+        double expectedLogP = qsbdSkyModel.calculateTreeLogLikelihood(tree);
+
+        assertEquals(expectedLogP, actualLogP, 1e-5);
+    }
 }
