@@ -173,7 +173,7 @@ t296=1
 <parameter name="becomeUninfectiousRate" id="becomeUninfectiousRate" value="1" lower="0.0" upper="200000.0"/>
 <parameter name="rho" dimension="7" id="rho" value="0.124215546632171 0.17921146953405 0.224215246636771 0.29940119760479 0.359712230215827 0.609756097560976 1" lower="0.0" upper="1.0"/>
         <parameter name="samplingProportion" id="samplingProportion" value="0.0"/>
-        <parameter name="rhoSamplingTimes" value="12 10 8 6 4 2 0"/>
+        <parameter name="rhoSamplingTimes" value="14 12 10 8 6 4 0"/>
         <reverseTimeArrays spec="beast.core.parameter.BooleanParameter" value="false false false true false"/>
     </BirthDeathSkylineModel>
     
