@@ -716,11 +716,11 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
             if (Double.isInfinite(logP))
                 return logP;
 
-            /*processMiddleProductTermIncidences(incidences);
+            processMiddleTermIncidences(incidences);
             if (Double.isInfinite(logP))
-                return logP;*/
+                return logP;
 
-            processLastTermIncidences(tree, incidences);
+            processLastTermIncidences(incidences);
             if (Double.isInfinite(logP))
                 return logP;
         }
@@ -1011,6 +1011,20 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
         }		
 	}
 
+	private void processMiddleTermIncidences(QuasiSpeciesIncidence[] incidences) {
+        for (QuasiSpeciesIncidence incidence : incidences) {
+            if (!incidence.isRhoSampled() || m_rho.get() == null) {
+                double y = times[totalIntervals - 1] - incidence.getSamplingTime();
+                final int index = index(y);
+
+                logP += incidence.getCount() * (FastMathLog(psi[index]) - log_q(index, times[index], y));
+
+                if (psi[index] == 0 || Double.isInfinite(logP))
+                    return;
+            }
+        }
+    }
+
 	private void processLastTerm(final TreeInterface tree, final QuasiSpeciesTree qsTree, final int nTips) {
 
         // last product term in f[T], factorizing from 1 to m //
@@ -1070,7 +1084,7 @@ public class QuasiSpeciesBirthDeathSkylineModel extends BirthDeathSkylineModel {
             }
 
             if (rho[j] > 0 && incidenceN[j] > 0) {
-                double temp = incidenceN[j] * FastMathLog(rho[j]);    // term for contemporaneous sampling
+                double temp = incidenceN[j] * FastMathLog(rho[j]);
                 logP += temp;
                 if (printTempResults)
                     System.out.println("3rd factor (Nj loop) = " + temp + "; interval = " + j + "; N[j] = " + N[j]);
