@@ -176,20 +176,20 @@ public class QuasiSpeciesBDSkyIncidenceTests {
         final RealParameter birth = new RealParameter("2.0");
         final RealParameter death = new RealParameter("1.0");
         final RealParameter sampling = new RealParameter("0.5");
-        final RealParameter rho = new RealParameter("0.5 0.5 0.5");
-        final RealParameter rhoTimes = new RealParameter("4.0 1.0 2.0");
+        final RealParameter rho = new RealParameter("0.5 0.5");
+        final RealParameter rhoTimes = new RealParameter("4.0 1.0");
 
         QuasiSpeciesTree tree = getQuasiSpeciesTree();
         QuasiSpeciesBirthDeathSkylineModel qsBdSkyModel = getQSBDSkyModel(tree, origin, conditionOnSurvival,
                                                                             birth, death, sampling, rho, rhoTimes);
 
         // contribution without incidences, i.e. processFirstProductTerm + processMiddleTerm + processLastTerm
-        double qsLogP = -18.571457786951814;
+        double qsLogP = -23.341726160817114;
 
         // contribution from incidences
-        double firstProductTerm = -29.611181748098154;
-        double middleTerm = 0.0;
-        double lastTerm = 0.0;
+        double firstProductTerm = -11.319640640880163;
+        double middleTerm = 4.549614707074507;
+        double lastTerm = -8.432610241835771;
         double logNumberOfIncidenceTrees = qsBdSkyModel.logNumberOfIncidenceTrees(tree);
 
         double actualLogP = qsLogP + qsBdSkyModel.logNumberOfQSTrees(tree) +
